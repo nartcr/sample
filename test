@@ -1,147 +1,37 @@
-Understood. The prompt below now has Claude on your BMO laptop write a Markdown file with every table in full, so you bring me the file instead of screenshots, and I do the analysis from it. It still produces the Excel workbook for your own use. Reviewed.
-
-```
 NO ASSUMPTIONS. IF UNCLEAR, ASK.
 
 HARD PRINCIPLES
-- Source file: 88160_Prod7_ResourceList.csv. Do not modify it.
-- Read every row. Do not sample, truncate or estimate.
-- Do not drop, merge or deduplicate rows.
-- Do not interpret, summarize or add commentary. Output data only.
-- Keep all seven source columns, exactly as they appear: Identifier, Tag: Name, Service, Type, Region, Tags, Tag: AppCatID.
-- Sort every table by Service, then Type, then Region, then Identifier, ascending, unless a section below says otherwise.
-- Every count must reconcile to the source row count. If anything does not reconcile, stop and report it.
-- Match Service and Type values exactly as written in the rules below. The one exception is the rule that matches any Service containing "ElasticLoadBalancing". If a value is spelled or cased differently, assign Unclassified. Do not map anything yourself.
+- Use only the workbook RFDH_88160_Discovery_Data.xlsx you already built. Do not modify it.
+- Output aggregate tables only. No row-level data.
+- Do not interpret or add commentary.
+- Every table total must match the workbook. If anything does not match, stop and report it.
 
-STEP 0 - STATE COLUMN
-Add a column named State to every row.
+Create RFDH_88160_Discovery_Summary.md containing exactly these tables, in this order, each with a "##" heading and a total row:
 
-Stateful:
-- Service: Redshift, RDS, S3, SQS, SecretsManager, SSM, KMS, Cognito
-- Glue with Type: Database, Table
+1. Service-Type-Region
+   Copy of sheet 3, unchanged: Service, Type, Region, State, Category, Count.
 
-Stateless:
-- Service: Lambda, StepFunctions, SNS
-- Any Service whose value contains "ElasticLoadBalancing"
-- EC2 with Type: SecurityGroup, NetworkInterface
-- Glue with Type: Job, Crawler, Trigger, Workflow, Connection
+2. CloudWatch by Type and Region
+   Copy of sheet 7, Table A, unchanged.
 
-To Verify:
-- EC2 with Type: Instance
-- Service: ECS, CloudWatch, CloudFormation (any Type)
+3. CloudFormation by Prefix
+   From sheet 8: Identifier Prefix, Region, Count. Sort by Count descending, then Identifier Prefix.
 
-Anything else: Unclassified
+4. EC2 and Load Balancers
+   From sheet 9: Service, Type, Region, Count. Sort by Service, then Type, then Region.
 
-STEP 1 - CATEGORY COLUMN
-Add a column named Category to every row.
+5. Not Tagged
+   Copy of sheet 10, Table A, unchanged.
 
-By Service:
-- Data Store: RDS, Redshift, S3
-- Compute: Lambda, ECS, StepFunctions
-- Network: any Service whose value contains "ElasticLoadBalancing"
-- Configuration and Security: SSM, KMS, SecretsManager, Cognito
-- Messaging: SNS, SQS
-- Monitoring: CloudWatch
-- Deployment: CloudFormation
+6. us-east-1
+   Copy of sheet 11, Table A, unchanged.
 
-Resolve these two services by Type instead:
-- EC2: SecurityGroup and NetworkInterface go to Network. Instance goes to Compute.
-- Glue: Job, Crawler, Trigger and Workflow go to Compute. Connection goes to Network. Database and Table go to Data Catalog.
+SELF-REVIEW BEFORE REPORTING
+- Table 1 total = 1,242.
+- Table 2 total = 447.
+- Table 3 total = 130.
+- Table 4 total = 35.
+- Table 5 total = 582.
+- Table 6 total = 18.
 
-Anything else: Unclassified
-
-STEP 2 - IDENTIFIER FORM AND PREFIX
-Add two more columns to every row.
-
-Identifier Form. Apply these rules in order and use the first one that matches:
-- ARN: the Identifier starts with "arn:"
-- Path: the Identifier starts with "/"
-- GUID: the Identifier matches 8-4-4-4-12 hexadecimal characters
-- AWS ID: the Identifier starts with a lowercase prefix followed by a hyphen and hexadecimal characters only (for example sg-, eni-, i-, subnet-, vpc-)
-- Name: anything else
-
-Identifier Prefix:
-- For Path: the first three non-empty "/"-separated segments, joined with "/".
-- For Name: take the text before the first "/", if one exists, then the first three "-"-separated tokens of that text, joined with "-".
-- For AWS ID: the text before the first "-", plus the "-" itself.
-- For ARN and GUID: leave blank.
-
-STEP 3 - BUILD THE TABLES
-Build these 13 tables. Each one becomes a section in the Markdown file and a sheet in the workbook.
-
-1. All Resources
-   Every row, with the seven source columns plus State, Category, Identifier Form and Identifier Prefix.
-
-2. State Summary
-   - Table A: State, Count, with a total row.
-   - Table B: State, Category, Service, Type, Count, with a total row. Sort by State, then Category, then Service, then Type.
-
-3. Service-Type-Region
-   Columns: Service, Type, Region, State, Category, Count. Add a total row.
-
-4. Stateful
-   All rows where State = Stateful, with every column.
-
-5. Stateless
-   All rows where State = Stateless, with every column.
-
-6. To Verify
-   All rows where State = To Verify, with every column.
-
-7. CloudWatch
-   - Table A: Type, Region, Count, with a total row.
-   - Table B: all CloudWatch rows, with every column.
-
-8. CloudFormation
-   All CloudFormation rows, with every column. Sort by Identifier Prefix, then Identifier.
-
-9. EC2 and Load Balancers
-   All rows where Service = EC2, or where Service contains "ElasticLoadBalancing", with every column. Above the rows, list the exact Service and Type values found.
-
-10. Not Tagged
-    - Table A: State, Service, Type, Region, Identifier Form, Identifier Prefix, Count, with a total row. Sort by Count descending, then State, Service, Type, Region and Identifier Prefix.
-    - Table B: every row where Tag: Name is exactly "(not tagged)", with every column.
-
-11. us-east-1
-    - Table A: State, Service, Type, Count, with a total row.
-    - Table B: every row where Region = us-east-1, with every column.
-
-12. Unclassified
-    Every row where State = Unclassified or Category = Unclassified, with every column.
-
-13. Reconciliation
-    Report each of these against the source row count:
-    - the row count of All Resources
-    - the State Summary Table A total
-    - the sum of the Stateful, Stateless and To Verify row counts plus the State = Unclassified count
-    - the Service-Type-Region total
-    Also report each of these against its matching count in the source:
-    - the CloudWatch total
-    - the CloudFormation row count
-    - the Not Tagged total
-    - the us-east-1 total
-
-STEP 4 - WRITE THE MARKDOWN FILE
-Create RFDH_88160_Discovery_Data.md.
-- Start with one line giving the source row count.
-- Write each table from Step 3 as a numbered section with a "##" heading, in the same order: "## 1. All Resources", "## 2. State Summary", and so on.
-- Where a section has Table A and Table B, give each its own "###" heading.
-- Use standard Markdown tables with a header row.
-- Write every row in full. Do not truncate, abbreviate or write "and N more".
-- If any cell contains "|", escape it as "\|".
-
-STEP 5 - WRITE THE WORKBOOK
-Create RFDH_88160_Discovery_Data.xlsx with one sheet per table from Step 3, in the same order and with the same names. On any sheet with two tables, place Table A at the top, leave one blank row, then place Table B, each with its own header row.
-
-STEP 6 - SELF-REVIEW BEFORE REPORTING
-- Check that All Resources row count = source row count.
-- Check that the State Summary total = source row count.
-- Check that Stateful + Stateless + To Verify + State Unclassified = source row count.
-- Check that the Service-Type-Region total = source row count.
-- Check that the Not Tagged total = the count of "(not tagged)" rows in the source.
-- Check that the us-east-1 total = the count of us-east-1 rows in the source.
-- Check that every table in the Markdown file has the same row count as its matching sheet in the workbook.
-- Open both files and confirm every section and every sheet is populated.
-
-In the chat, report only: the two file names, the row count of each table, the count per State, the count per Category, the result of each Step 6 check, and the Service and Type values of any Unclassified rows.
-```
+In the chat, report only the file name and the result of each check.
