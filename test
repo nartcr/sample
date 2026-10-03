@@ -1,0 +1,79 @@
+NO ASSUMPTIONS. IF UNCLEAR, ASK.
+
+HARD PRINCIPLES
+- Do not modify the source file.
+- Read every row. Do not sample, truncate, or estimate.
+- Do not drop, merge, or deduplicate rows silently.
+- Do not guess a classification. Anything not covered by the mapping below goes to Unclassified.
+- Sort every output table deterministically: by Service, then Type, then Region, then Identifier, ascending.
+- Every count must reconcile to the total row count. If it doesn't, stop and report the difference.
+
+CONTEXT
+The attached file is 88160_Prod7_ResourceList.csv. It lists AWS resources for AppCat ID 88160 in the Prod7 account.
+The columns are: Identifier, Tag: Name, Service, Type, Region, Tags, Tag: AppCatID.
+"Tags" is the number of tags on the resource.
+
+STEP 0 - VALIDATE (stop and report if any check fails)
+1. Confirm the seven columns above exist with these exact names.
+2. Report the total row count, excluding the header.
+3. List the distinct values of Tag: AppCatID with a count for each. The expected value is only 88160.
+4. List the distinct values of Region with a count for each.
+5. Count rows with a blank Service or a blank Type.
+6. List any Identifier that appears more than once, with its count.
+
+STEP 1 - COUNT BY SERVICE AND TYPE
+Produce a table with the columns Service, Type and Count, with a total row at the bottom.
+
+STEP 2 - SPLIT BY REGION
+Produce a table with the columns Service, Type, then one count column per Region, then Total.
+
+STEP 3 - CLASSIFY
+Apply this mapping by Service:
+- Stateful: RDS, Redshift, S3
+- Compute: Lambda, ECS, StepFunctions
+- Network: ElasticLoadBalancingV2
+- Configuration and Security: SSM, KMS, SecretsManager, Cognito
+- Messaging: SNS, SQS
+- Monitoring: CloudWatch
+- Deployment: CloudFormation
+
+Resolve these two services by Type instead:
+- EC2: SecurityGroup goes to Network, Instance goes to Compute. Any other EC2 Type goes to Unclassified.
+- Glue: Job, Crawler, Trigger and Workflow go to Compute. Connection goes to Network. Database and Table go to Data Catalog. Any other Glue Type goes to Unclassified.
+
+If a Service value in the file does not exactly match a name above (for example a different spelling or casing), put it in Unclassified. Do not map it yourself.
+
+Produce two tables:
+- A: Service, Type, Category, Count. One row for every Service and Type combination in the file.
+- B: Category, Count, with a total row.
+
+STEP 4 - FLAG UNTAGGED NAMES
+Select every row where Tag: Name is exactly "(not tagged)".
+Produce two tables:
+- A: Service, Type, Region, Count, with a total row.
+- B: the full list of these rows with all seven columns.
+
+STEP 5 - RECONCILE
+Confirm that each of these equals the total row count from Step 0: the Step 1 total, the Step 2 total, and the Step 3 Table B total.
+Report each figure. If any differ, stop and explain.
+
+OUTPUT
+Produce one Excel workbook named 88160_Prod7_Inventory_Summary.xlsx with these sheets:
+1. Validation (Step 0)
+2. By Service-Type (Step 1)
+3. By Region (Step 2)
+4. Classification (Step 3, Table A)
+5. By Category (Step 3, Table B)
+6. Not Tagged Summary (Step 4, Table A)
+7. Not Tagged Rows (Step 4, Table B)
+8. Unclassified (every row whose Category is Unclassified, with all seven columns)
+9. Reconciliation (Step 5)
+
+In the chat, give only:
+- the total row count
+- the count per Category
+- the count of "(not tagged)" rows
+- the count of Unclassified rows, and the Service and Type combinations that caused them
+- the reconciliation result
+
+No other commentary.
