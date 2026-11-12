@@ -1,37 +1,32 @@
-NO ASSUMPTIONS. IF UNCLEAR, ASK.
+**Agent 1**
+- **Provide Agent Name:** Code Generation Accelerator (CGA) – Sizing Agent
+- **Solution type:** Multi Agent
+- **How many AI agents:** 3
+- **Development platforms:** AWS Agent Core
+- **Vendor or in-house:** Developed in house
+- **Largest population, process or system that could be affected:** A single code generation run for one team. The agent only reads the specification and plans the modules. It writes no code and changes nothing in GitHub; a wrong plan can only lead to a rejected run or a draft pull request.
+- **Intended users:** Internal BMO developers on onboarded teams
+- **Can the agent's actions be stopped immediately:** Yes
+- **Agent Status:** In development
 
-HARD PRINCIPLES
-- Use only the workbook RFDH_88160_Discovery_Data.xlsx you already built. Do not modify it.
-- Output aggregate tables only. No row-level data.
-- Do not interpret or add commentary.
-- Every table total must match the workbook. If anything does not match, stop and report it.
+**Agent 2**
+- **Provide Agent Name:** Code Generation Accelerator (CGA) – Generation Agent
+- **Solution type:** Multi Agent
+- **How many AI agents:** 3
+- **Development platforms:** AWS Agent Core
+- **Vendor or in-house:** Developed in house
+- **Largest population, process or system that could be affected:** One team's GitHub repository in the sandbox. The agent writes code, tests and documentation, which arrive only as a pull request. Nothing is merged or deployed, and a developer reviews every change.
+- **Intended users:** Internal BMO developers on onboarded teams
+- **Can the agent's actions be stopped immediately:** Yes
+- **Agent Status:** In development
 
-Create RFDH_88160_Discovery_Summary.md containing exactly these tables, in this order, each with a "##" heading and a total row:
-
-1. Service-Type-Region
-   Copy of sheet 3, unchanged: Service, Type, Region, State, Category, Count.
-
-2. CloudWatch by Type and Region
-   Copy of sheet 7, Table A, unchanged.
-
-3. CloudFormation by Prefix
-   From sheet 8: Identifier Prefix, Region, Count. Sort by Count descending, then Identifier Prefix.
-
-4. EC2 and Load Balancers
-   From sheet 9: Service, Type, Region, Count. Sort by Service, then Type, then Region.
-
-5. Not Tagged
-   Copy of sheet 10, Table A, unchanged.
-
-6. us-east-1
-   Copy of sheet 11, Table A, unchanged.
-
-SELF-REVIEW BEFORE REPORTING
-- Table 1 total = 1,242.
-- Table 2 total = 447.
-- Table 3 total = 130.
-- Table 4 total = 35.
-- Table 5 total = 582.
-- Table 6 total = 18.
-
-In the chat, report only the file name and the result of each check.
+**Agent 3**
+- **Provide Agent Name:** Code Generation Accelerator (CGA) – Grading Agent
+- **Solution type:** Multi Agent
+- **How many AI agents:** 3
+- **Development platforms:** AWS Agent Core
+- **Vendor or in-house:** Developed in house
+- **Largest population, process or system that could be affected:** One team's pull request in the sandbox. The agent reviews the generated code; a wrong review can only mark a pull request ready or draft. A developer still reviews every change before anything is merged.
+- **Intended users:** Internal BMO developers on onboarded teams
+- **Can the agent's actions be stopped immediately:** Yes
+- **Agent Status:** In development
